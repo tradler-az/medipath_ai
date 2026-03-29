@@ -10,14 +10,38 @@ from collections import defaultdict
 from itertools import combinations
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
+from werkzeug.security import generate_password_hash, check_password_hash
+import sqlite3
+import os
+import json
 
 warnings.filterwarnings("ignore")
 app = Flask(__name__)
+app.config['JWT_SECRET_KEY'] = 'medi-path-super-secret-2024-change-in-prod!'
+jwt = JWTManager(app)
 CORS(app)
 
 
-#  LOAD DATA
+# SQLite DB
+DB_PATH = 'patients.db'
 
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# Demo users (hash: demo123)
+DEMO_USERS = {
+    'demo': generate_password_hash('demo123'),
+    'reception': generate_password_hash('demo123'),
+    'lab': generate_password_hash('demo123'),
+    'consultant': generate_password_hash('demo123'),
+    'pharmacy': generate_password_hash('demo123'),
+    'admin': generate_password_hash('demo123'),
+}
+
+# Load CSV data (legacy)
 patient_data = pd.read_csv('patient_records.csv')
 disease_data = pd.read_csv('Diseases_Symptoms.csv')
 pattern      = pd.read_csv('pattern.csv')
